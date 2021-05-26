@@ -1,24 +1,51 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import Tabla from './components/table';
+import Detail from './components/detail'
+import Grafico from './components/grafico'
 
-function App() {
+function App(props) {
+
+  const [series, setSeries] = useState([])
+
+  const [selected, setSelected] = useState({})
+
+  useEffect(()=>{
+    if(!navigator.onLine){
+      if (localStorage.getItem("series") === null) setSeries("Loading...");
+      else setSeries(JSON.parse(localStorage.getItem("series")));
+    }
+
+    fetch(props.url)
+    .then(res => res.json())
+    .then(res => {
+      setSeries(res)
+      localStorage.setItem('series', JSON.stringify(res))
+    })
+  },[])
+
+  const handleSelection = (event)=>{
+    const id = parseInt(event.target.id.split('-')[1])
+    const sel = series.find(item => item.id === id)
+
+    setSelected(sel)
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="App row">
+        <div className ='col-7'>
+          <Tabla series ={series} handleSelection={handleSelection}/>
+        </div>
+        <div className ='col-4'>
+          <Detail selected = {selected}></Detail>
+        </div>
+      </div>
+      <div className="row">
+          <div className="col-1"></div>
+          <div className="col-10">
+            <Grafico series={series}/>
+          </div>
+        </div>
     </div>
   );
 }
